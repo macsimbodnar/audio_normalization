@@ -34,6 +34,11 @@ true_peak="-1.5"
 # Loudness range target:
 #   11 LU is a good compromise: keeps some dynamics without being wildly inconsistent.
 lra_target="11"
+
+# Godot-safe WAV output (match your project settings)
+sample_rate="48000"     # set to 44100 if your project uses that
+channels="2"
+pcm_codec="pcm_s16le"
 # ----------------------------------------------------------------------
 
 # Ensure required tools exist
@@ -41,14 +46,10 @@ if ! command -v ffmpeg-normalize >/dev/null 2>&1; then
   echo "Error: ffmpeg-normalize not found in PATH." >&2
   exit 1
 fi
-if ! command -v find >/dev/null 2>&1; then
-  echo "Error: find not found." >&2
-  exit 1
-fi
 
 echo "Input : $input_dir"
 echo "Output: $output_dir"
-echo "Settings: EBU R128 | I=$target_lufs LUFS | TP=$true_peak dBTP | LRA=$lra_target LU"
+echo "Settings: EBU R128 | I=$target_lufs LUFS | TP=$true_peak dBTP | LRA=$lra_target LU | SR=$sample_rate | CH=$channels | CODEC=$pcm_codec"
 echo
 
 found_any=0
@@ -73,9 +74,10 @@ while IFS= read -r -d '' in_file; do
     --normalization-type ebu \
     --target-level "$target_lufs" \
     --true-peak "$true_peak" \
-    --sample-rate 48000 \
-    --audio-channels 2 \
-    --audio-codec pcm_s16le \
+    --loudness-range-target "$lra_target" \
+    --sample-rate "$sample_rate" \
+    --audio-channels "$channels" \
+    --audio-codec "$pcm_codec" \
     --output "$out_file" \
     --force \
     --progress
